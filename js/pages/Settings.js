@@ -147,7 +147,7 @@ export function SettingsPage() {
           <div class="settings-section">
             <h3>Progreso & Gamificación</h3>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+            <div class="stats-grid-4col">
               <div class="card" style="text-align:center;padding:12px">
                 <div style="font-size:var(--text-xs);color:var(--text-muted);text-transform:uppercase;letter-spacing:0.04em">Nivel</div>
                 <div style="font-size:var(--text-2xl);font-weight:800;color:var(--accent)">${profile.level}</div>
@@ -217,9 +217,9 @@ export function SettingsPage() {
             <h3>Acerca de</h3>
             <div class="card">
               <div class="card-body">
-                <p><strong>Levitar OS</strong> — Sistema Operativo Personal & Profesional</p>
+                <p><strong>My Workspace</strong> — Sistema Operativo Personal & Profesional</p>
                 <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-top:4px">Versión 3.0.0</p>
-                <p style="font-size:var(--text-sm);color:var(--text-muted);margin-top:12px">De Visión → Metas → Objetivos → Proyectos → Tareas, con gamificación y enfoque en acción.</p>
+                <p style="font-size:var(--text-sm);color:var(--text-muted);margin-top:12px">Metas → Proyectos → Tareas, con gamificación, misiones diarias y enfoque en acción.</p>
               </div>
             </div>
           </div>

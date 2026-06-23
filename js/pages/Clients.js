@@ -130,12 +130,12 @@ export function ClientsPage() {
               </button>
             </div>
           </div>
-          <div style="display:flex;gap:6px;margin-bottom:12px;padding:0 32px">
+          <div class="client-filter-bar">
             <button class="btn btn-ghost btn-sm client-filter ${filterMode === 'active' ? 'active' : ''}" data-filter="active">Activos</button>
             <button class="btn btn-ghost btn-sm client-filter ${filterMode === 'archived' ? 'active' : ''}" data-filter="archived">Archivados</button>
             <button class="btn btn-ghost btn-sm client-filter ${filterMode === 'all' ? 'active' : ''}" data-filter="all">Todos</button>
           </div>
-          <div style="padding:0 32px 32px" id="clientList">${renderClientList()}</div>
+          <div class="client-list-wrap" id="clientList">${renderClientList()}</div>
         </div>
       `;
     },

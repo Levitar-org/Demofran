@@ -9,12 +9,12 @@ const STEPS = [
   {
     target: '#quickCaptureFab',
     title: '⚡ Captura rápida',
-    text: 'Presioná este botón o usá Ctrl+K para crear tareas, notas, ideas o clientes al instante, sin perder el foco.'
+    text: 'Presioná este botón o usá Ctrl+K para crear tareas, notas, proyectos o clientes al instante, sin perder el foco.'
   },
   {
     target: '#content .dashboard-widget:first-child',
     title: '📊 Tu progreso',
-    text: 'En el Dashboard ves tu nivel, XP, racha y las tareas del día. Completá tareas para subir de nivel y desbloquear logros.'
+    text: 'En el Dashboard ves tu nivel, XP, racha y las Misiones del día. Completá misiones y tareas para subir de nivel y desbloquear logros.'
   }
 ];
 

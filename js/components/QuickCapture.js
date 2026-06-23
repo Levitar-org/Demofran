@@ -6,20 +6,16 @@ import { Utils } from '../utils.js';
 
 const ICONS = {
   task: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',
-  idea: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 008.91 14"/></svg>',
   note: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
   client: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
   project: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
-  meeting: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
 };
 
 const TYPES = [
   { id: 'task', icon: ICONS.task, label: 'Tarea', color: '#6366f1' },
-  { id: 'idea', icon: ICONS.idea, label: 'Idea', color: '#f59e0b' },
   { id: 'note', icon: ICONS.note, label: 'Nota', color: '#10b981' },
   { id: 'client', icon: ICONS.client, label: 'Cliente', color: '#3b82f6' },
   { id: 'project', icon: ICONS.project, label: 'Proyecto', color: '#8b5cf6' },
-  { id: 'meeting', icon: ICONS.meeting, label: 'Reunión', color: '#ec4899' },
 ];
 
 export function initQuickCapture() {
@@ -128,33 +124,6 @@ function showForm(type) {
         router.resolve();
       }
     },
-    idea: {
-      title: 'Nueva Idea',
-      html: `
-        <div class="form-group">
-          <label>Idea *</label>
-          <input type="text" id="qcIdeaTitle" class="form-input" placeholder="¿Qué se te ocurrió?" autofocus>
-        </div>
-        <div class="form-group">
-          <label>Detalle</label>
-          <textarea id="qcIdeaContent" class="form-input" rows="3"></textarea>
-        </div>
-      `,
-      action: () => {
-        const title = document.getElementById('qcIdeaTitle')?.value.trim();
-        if (!title) return showToast('Escribí tu idea', 'warning');
-        DB.create('notes', {
-          projectId: null,
-          workspace: 'personal',
-          title,
-          content: document.getElementById('qcIdeaContent')?.value.trim() || '',
-          tags: ['ideas'],
-          pinned: false
-        });
-        showToast('Idea guardada', 'success');
-        router.resolve();
-      }
-    },
     note: {
       title: 'Nueva Nota',
       html: `
@@ -201,6 +170,7 @@ function showForm(type) {
       action: () => {
         const name = document.getElementById('qcClientName')?.value.trim();
         if (!name) return showToast('El nombre es obligatorio', 'warning');
+        if (DB.count('clients') >= 1) return showToast('Solo podés tener 1 cliente en la versión demo', 'warning');
         const client = DB.create('clients', {
           archived: false,
           name,
@@ -242,6 +212,7 @@ function showForm(type) {
         const name = document.getElementById('qcProjName')?.value.trim();
         if (!name) return showToast('El nombre es obligatorio', 'warning');
         const clientId = document.getElementById('qcProjClient')?.value || null;
+        if (!clientId && DB.getPersonalProjects().length >= 2) return showToast('Máximo 2 proyectos personales en la versión demo', 'warning');
         const project = DB.create('projects', {
           clientId,
           workspace: clientId ? 'client' : 'personal',
@@ -255,41 +226,6 @@ function showForm(type) {
         router.navigate(route);
       }
     },
-    meeting: {
-      title: 'Nueva Reunión',
-      html: `
-        <div class="form-group">
-          <label>Título *</label>
-          <input type="text" id="qcMeetTitle" class="form-input" placeholder="Ej: Revisión semanal" autofocus>
-        </div>
-        <div class="form-group">
-          <label>Fecha</label>
-          <input type="date" id="qcMeetDate" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>Proyecto (opcional)</label>
-          <select id="qcMeetProject" class="form-input">
-            <option value="">Reunión general</option>
-            ${getProjectOptions()}
-          </select>
-        </div>
-      `,
-      action: () => {
-        const title = document.getElementById('qcMeetTitle')?.value.trim();
-        if (!title) return showToast('El título es obligatorio', 'warning');
-        const projectId = document.getElementById('qcMeetProject')?.value || null;
-        const project = projectId ? DB.getById('projects', projectId) : null;
-        DB.create('meetings', {
-          clientId: project?.clientId || null,
-          projectId,
-          title,
-          date: document.getElementById('qcMeetDate')?.value || new Date().toISOString().split('T')[0],
-          notes: ''
-        });
-        showToast('Reunión creada', 'success');
-        router.resolve();
-      }
-    }
   };
 
   const form = forms[type];

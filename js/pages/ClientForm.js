@@ -70,6 +70,8 @@ export function ClientFormPage() {
           return;
         }
 
+        if (DB.count('clients') >= 1) { showToast('Solo podés tener 1 cliente en la versión demo', 'warning'); return; }
+
         const services = Array.from(document.querySelectorAll('.service-check:checked')).map(cb => cb.value);
 
         const client = DB.create('clients', {

@@ -44,6 +44,7 @@ function renderPage(page) {
 
 checkVersion();
 DB.init();
+DB.refreshMissionsState();
 renderSidebar();
 renderBottomNav();
 initPullToRefresh('.content', {
@@ -70,7 +71,6 @@ if (DB.isOnboardingRequired()) {
   router.register('personal/tasks', () => renderPage(PersonalPage({ tab: 'tasks' })));
   router.register('personal/notes', () => renderPage(PersonalPage({ tab: 'notes' })));
   router.register('personal/calendar', () => renderPage(PersonalPage({ tab: 'calendar' })));
-  router.register('personal/ideas', () => renderPage(PersonalPage({ tab: 'ideas' })));
   router.register('personal/projects/:pid', (params) => renderPage(ProjectDetailPage({ pid: params.pid })));
   router.register('settings', () => renderPage(SettingsPage()));
 

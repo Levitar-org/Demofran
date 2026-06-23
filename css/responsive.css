@@ -88,6 +88,59 @@
   }
 }
 
+/* ── Detail header responsive ── */
+@media (max-width: 768px) {
+  .detail-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  .detail-header > .btn-ghost:first-child {
+    align-self: flex-start;
+  }
+
+  .detail-header-info {
+    width: 100%;
+  }
+
+  .detail-header-info h1 {
+    font-size: var(--text-lg);
+  }
+
+  .detail-header > div:last-child:not(.detail-header-info) {
+    margin-left: 0 !important;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .project-meta {
+    font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+
+  .detail-header .btn {
+    min-height: 36px;
+    padding: 6px 12px;
+    font-size: var(--text-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .detail-header-info h1 {
+    font-size: var(--text-base);
+  }
+
+  .detail-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: var(--text-sm);
+  }
+}
+
 /* ─── 768px — Sidebar → Drawer + Bottom Nav ──────────────────────────── */
 @media (max-width: 768px) {
   /* ── Bottom Navigation ── */
@@ -459,6 +512,16 @@
     min-width: 0;
   }
 
+  /* ── Action button rows (compact on mobile) ── */
+  .card-body .action-row {
+    flex-direction: column;
+  }
+
+  .card-body .action-row .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   /* ── Kanban items — touch friendly ── */
   .kanban-item {
     padding: 12px;
@@ -473,6 +536,60 @@
   /* ── Danger zone ── */
   .danger-zone {
     padding: 16px;
+  }
+}
+
+/* ── Client page layout ── */
+.client-filter-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 0 32px;
+}
+
+.client-list-wrap {
+  padding: 0 32px 32px;
+}
+
+@media (max-width: 768px) {
+  .client-filter-bar {
+    padding: 0 16px;
+  }
+
+  .client-list-wrap {
+    padding: 0 16px 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .client-filter-bar {
+    padding: 0 12px;
+    gap: 4px;
+  }
+
+  .client-list-wrap {
+    padding: 0 12px 24px;
+  }
+}
+
+/* ── Stats 4-column grid ── */
+.stats-grid-4col {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 576px) {
+  .stats-grid-4col {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+}
+
+@media (max-width: 375px) {
+  .stats-grid-4col {
+    gap: 4px;
   }
 }
 
@@ -601,6 +718,16 @@
     border-color: var(--border) !important;
   }
 
+  /* ── Override inline card padding on small screens ── */
+  .card[style*="padding:16px"],
+  .card[style*="padding: 16px"],
+  .card[style*="padding:24px"],
+  .card[style*="padding: 24px"],
+  .card[style*="padding:20px"],
+  .card[style*="padding: 20px"] {
+    padding: 14px !important;
+  }
+
   .client-card:hover {
     transform: none !important;
     border-color: var(--border) !important;
@@ -639,6 +766,100 @@
   /* ── Tooltip / metadata ── */
   .client-meta span {
     gap: 2px;
+  }
+}
+
+/* ── Tabs "Más" dropdown ── */
+.tabs-more-wrap {
+  position: relative;
+}
+
+.tabs-more-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 50;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  min-width: 160px;
+  padding: 4px;
+  animation: dropdownIn 0.15s ease;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tabs-more-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 14px;
+  font-size: var(--text-sm);
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.tabs-more-item:hover {
+  background: var(--surface-hover);
+}
+
+.tabs-more-item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ── Filter bar responsive ── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 480px) {
+  .filter-bar .btn {
+    flex: 1;
+    min-width: 0;
+    justify-content: center;
+    padding: 6px 8px;
+    font-size: var(--text-xs);
+  }
+}
+
+/* ── Modal form spacing on mobile ── */
+@media (max-width: 480px) {
+  .modal-body .form-group + .form-group {
+    margin-top: 10px;
+  }
+
+  .modal-body .form-group label {
+    margin-bottom: 3px;
+    font-size: var(--text-xs);
+  }
+
+  .modal-footer .btn {
+    font-size: var(--text-sm);
+    min-height: 40px;
+  }
+}
+
+/* ── Empty state responsive ── */
+@media (max-width: 576px) {
+  .empty-state [style*="font-size:48px"] {
+    font-size: 36px !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .empty-state [style*="font-size:48px"] {
+    font-size: 28px !important;
   }
 }
 
@@ -735,6 +956,15 @@
   .modal {
     border-radius: var(--radius-md);
     max-height: 92vh;
+  }
+
+  .card[style*="padding:16px"],
+  .card[style*="padding: 16px"],
+  .card[style*="padding:24px"],
+  .card[style*="padding: 24px"],
+  .card[style*="padding:20px"],
+  .card[style*="padding: 20px"] {
+    padding: 14px !important;
   }
 
   .modal-header {
@@ -892,6 +1122,15 @@
   /* ── more compact cards ── */
   .card {
     padding: 12px;
+  }
+
+  .card[style*="padding:16px"],
+  .card[style*="padding: 16px"],
+  .card[style*="padding:24px"],
+  .card[style*="padding: 24px"],
+  .card[style*="padding:20px"],
+  .card[style*="padding: 20px"] {
+    padding: 12px !important;
   }
 
   .client-card {

@@ -8,18 +8,11 @@ import { initKanbanDrag } from '../components/Kanban.js';
 import { addSwipeTarget } from '../components/SwipeToDelete.js';
 
 const TABS = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'objectives', label: 'Objetivos' },
-  { id: 'campaigns', label: 'Campañas' },
-  { id: 'content', label: 'Contenido' },
-  { id: 'planner', label: 'Planner' },
-  { id: 'calendar', label: 'Calendario' },
-  { id: 'tasks', label: 'Tareas' },
-  { id: 'files', label: 'Archivos' },
-  { id: 'prompts', label: 'Prompts' },
-  { id: 'notes', label: 'Notas' },
-  { id: 'meetings', label: 'Reuniones' },
-  { id: 'history', label: 'Historial' },
+  { id: 'overview', label: 'Resumen' },
+  { id: 'trabajo', label: 'Trabajo' },
+  { id: 'tareas', label: 'Tareas' },
+  { id: 'recursos', label: 'Recursos' },
+  { id: 'actividad', label: 'Actividad' },
 ];
 
 export function ProjectDetailPage(params) {
@@ -299,52 +292,6 @@ export function ProjectDetailPage(params) {
     `;
   }
 
-  function renderTasks() {
-    const tasks = DB.where('tasks', t => t.projectId === projectId);
-    const columns = ['todo', 'in_progress', 'done'];
-    const columnLabels = { todo: 'Por hacer', in_progress: 'En progreso', done: 'Completada' };
-
-    return `
-      <div class="page-enter" style="margin-top:16px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-          <h3>Tareas (${tasks.length})</h3>
-          <button class="btn btn-primary" id="addTaskBtn">+ Nueva tarea</button>
-        </div>
-        <div class="kanban-board">
-          ${columns.map(col => {
-            const colTasks = tasks.filter(t => t.status === col);
-            return `
-              <div class="kanban-column" data-status="${col}">
-                <div class="kanban-column-header">
-                  <span>${columnLabels[col]}</span>
-                  <span class="kanban-count">${colTasks.length}</span>
-                </div>
-                <div class="kanban-items" id="kanban-${col}">
-                  ${colTasks.map(t => {
-                    const obj = t.objectiveId ? DB.getById('objectives', t.objectiveId) : null;
-                    const diff = t.difficulty || 'medium';
-                    const diffXp = { easy: 10, medium: 25, hard: 50, epic: 100 }[diff];
-                    return `
-                    <div class="kanban-item" draggable="true" data-task-id="${t.id}">
-                      <div class="kanban-item-title">${Utils.sanitize(t.title)}</div>
-                      ${obj ? `<div class="kanban-item-obj"><span class="objective-dot objective-${obj.status}"></span>${Utils.truncate(Utils.sanitize(obj.title), 30)}</div>` : ''}
-                      ${t.description ? `<div class="kanban-item-desc">${Utils.truncate(Utils.sanitize(t.description), 50)}</div>` : ''}
-                      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
-                        <span style="font-size:10px;color:var(--accent);font-weight:600">+${diffXp} XP</span>
-                        <button class="btn btn-sm btn-ghost task-del-btn" data-id="${t.id}">✕</button>
-                      </div>
-                    </div>
-                  `;
-                  }).join('')}
-                </div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  }
-
   function renderFiles() {
     const files = DB.where('files', f => f.projectId === projectId);
     return `
@@ -500,6 +447,135 @@ export function ProjectDetailPage(params) {
             `).join('')}
           </div>
         `}
+      </div>
+    `;
+  }
+
+  function renderTrabajo() {
+    return `
+      <div class="page-enter" style="margin-top:16px">
+        <div style="margin-bottom:8px">
+          ${renderCampaigns()}
+        </div>
+        <div style="margin-bottom:8px">
+          ${renderContent()}
+        </div>
+        <div>
+          ${renderPlanner()}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTareas() {
+    const objectives = DB.where('objectives', o => o.projectId === projectId);
+    const tasks = DB.where('tasks', t => t.projectId === projectId);
+    return `
+      <div class="page-enter" style="margin-top:16px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3>Objetivos (${objectives.length})</h3>
+          <button class="btn btn-primary btn-sm" id="addObjectiveBtn">+ Nuevo objetivo</button>
+        </div>
+        ${objectives.length === 0 ? '<p style="color:var(--text-muted);margin-bottom:16px">Sin objetivos definidos</p>' : `
+          <div style="margin-bottom:20px">
+            ${objectives.map(o => {
+              const prog = DB.getObjectiveProgress(o.id);
+              return `
+              <div class="card" style="padding:12px;margin-bottom:6px">
+                <div style="display:flex;justify-content:space-between;align-items:start">
+                  <div style="flex:1">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span class="objective-status objective-${o.status}"></span>
+                      <strong style="font-size:var(--text-sm)">${Utils.sanitize(o.title)}</strong>
+                    </div>
+                    ${prog.total > 0 ? `
+                    <div class="progress-bar" style="margin-top:6px;height:4px">
+                      <div class="progress-fill" style="width:${prog.percent}%;height:4px;background:${o.status === 'achieved' ? 'var(--success)' : 'var(--accent)'}"></div>
+                    </div>
+                    <div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:2px">${prog.done}/${prog.total} tareas</div>` : ''}
+                  </div>
+                  <div style="display:flex;gap:4px;flex-shrink:0">
+                    <button class="btn btn-sm btn-ghost objective-status-btn" data-id="${o.id}" data-status="${o.status}">✓</button>
+                    <button class="btn btn-sm btn-ghost objective-del-btn" data-id="${o.id}">✕</button>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+        `}
+        <h3 style="margin-bottom:8px">Tareas (${tasks.length})</h3>
+        ${renderTasksSection(tasks)}
+      </div>
+    `;
+  }
+
+  function renderTasksSection(tasks) {
+    const columns = ['todo', 'in_progress', 'done'];
+    const columnLabels = { todo: 'Por hacer', in_progress: 'En progreso', done: 'Completada' };
+    return `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div></div>
+        <button class="btn btn-primary btn-sm" id="addTaskBtn">+ Nueva tarea</button>
+      </div>
+      <div class="kanban-board">
+        ${columns.map(col => {
+          const colTasks = tasks.filter(t => t.status === col);
+          return `
+            <div class="kanban-column" data-status="${col}">
+              <div class="kanban-column-header"><span>${columnLabels[col]}</span><span class="kanban-count">${colTasks.length}</span></div>
+              <div class="kanban-items" id="kanban-${col}">
+                ${colTasks.map(t => {
+                  const obj = t.objectiveId ? DB.getById('objectives', t.objectiveId) : null;
+                  const diff = t.difficulty || 'medium';
+                  const diffXp = { easy: 10, medium: 25, hard: 50, epic: 100 }[diff];
+                  return `
+                  <div class="kanban-item" draggable="true" data-task-id="${t.id}">
+                    <div class="kanban-item-title">${Utils.sanitize(t.title)}</div>
+                    ${obj ? `<div class="kanban-item-obj"><span class="objective-dot objective-${obj.status}"></span>${Utils.truncate(Utils.sanitize(obj.title), 30)}</div>` : ''}
+                    ${t.description ? `<div class="kanban-item-desc">${Utils.truncate(Utils.sanitize(t.description), 50)}</div>` : ''}
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px">
+                      <span style="font-size:10px;color:var(--accent);font-weight:600">+${diffXp} XP</span>
+                      <button class="btn btn-sm btn-ghost task-del-btn" data-id="${t.id}">✕</button>
+                    </div>
+                  </div>
+                `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  function renderRecursos() {
+    return `
+      <div class="page-enter" style="margin-top:16px">
+        <div style="margin-bottom:8px">
+          ${renderFiles()}
+        </div>
+        <div>
+          ${renderPrompts()}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderActividad() {
+    return `
+      <div class="page-enter" style="margin-top:16px">
+        <div style="margin-bottom:8px">
+          ${renderNotes()}
+        </div>
+        <div style="margin-bottom:8px">
+          ${renderMeetings()}
+        </div>
+        <div style="margin-bottom:8px">
+          ${renderCalendar()}
+        </div>
+        <div>
+          ${renderHistory()}
+        </div>
       </div>
     `;
   }
@@ -742,17 +818,10 @@ export function ProjectDetailPage(params) {
             ${renderHeader(project, client)}
             ${renderTabs()}
             ${activeTab === 'overview' ? renderOverview() : ''}
-            ${activeTab === 'objectives' ? renderObjectives() : ''}
-            ${activeTab === 'campaigns' ? renderCampaigns() : ''}
-            ${activeTab === 'content' ? renderContent() : ''}
-            ${activeTab === 'planner' ? renderPlanner() : ''}
-            ${activeTab === 'calendar' ? renderCalendar() : ''}
-            ${activeTab === 'tasks' ? renderTasks() : ''}
-            ${activeTab === 'files' ? renderFiles() : ''}
-            ${activeTab === 'prompts' ? renderPrompts() : ''}
-            ${activeTab === 'notes' ? renderNotes() : ''}
-            ${activeTab === 'meetings' ? renderMeetings() : ''}
-            ${activeTab === 'history' ? renderHistory() : ''}
+            ${activeTab === 'trabajo' ? renderTrabajo() : ''}
+            ${activeTab === 'tareas' ? renderTareas() : ''}
+            ${activeTab === 'recursos' ? renderRecursos() : ''}
+            ${activeTab === 'actividad' ? renderActividad() : ''}
           </div>
         `;
       },
@@ -770,6 +839,8 @@ export function ProjectDetailPage(params) {
             reRender();
           });
         });
+
+
 
         // CRUD buttons
         document.getElementById('addObjectiveBtn')?.addEventListener('click', showAddObjective);
@@ -919,7 +990,7 @@ export function ProjectDetailPage(params) {
         });
 
         // Calendar
-        if (activeTab === 'calendar' && document.getElementById('calendarContainer')) {
+        if (activeTab === 'actividad' && document.getElementById('calendarContainer')) {
           const events = DB.where('events', e => e.projectId === projectId);
           const tasks = DB.where('tasks', t => t.projectId === projectId);
           const cal = CalendarGrid({
@@ -944,7 +1015,7 @@ export function ProjectDetailPage(params) {
         }
 
         // Drag and drop for tasks
-        if (activeTab === 'tasks') {
+        if (activeTab === 'tareas') {
           handleDragAndDrop();
         }
       }

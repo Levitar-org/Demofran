@@ -111,7 +111,7 @@ export function ClientDetailPage(params) {
             <label>Objetivo Principal</label>
             <textarea id="editObjective" class="form-input" rows="2">${Utils.sanitize(client.mainObjective || '')}</textarea>
           </div>
-          <div style="display:flex;gap:8px;margin-top:16px">
+          <div class="action-row" style="display:flex;gap:8px;margin-top:16px">
             <button class="btn btn-primary" id="saveClientBtn">Guardar cambios</button>
             <button class="btn btn-danger" id="deleteClientBtn">Eliminar cliente</button>
             <button class="btn btn-secondary" id="archiveClientBtn">${client.archived ? 'Restaurar' : 'Archivar'}</button>

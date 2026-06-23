@@ -562,6 +562,127 @@ export const DB = {
     );
   },
 
+  // ─── DAILY MISSIONS ───
+
+  getDailyMissions() {
+    const today = new Date().toISOString().split('T')[0];
+    const raw = localStorage.getItem('levitar_daily_missions');
+    let data;
+    if (raw) {
+      try { data = JSON.parse(raw); } catch { data = null; }
+    }
+    if (data && data.date === today) return data.missions;
+
+    const rotatingMissions = [
+      { id: 'rotate_1', label: 'Crear 1 nota con ideas', check: () => { const today2 = new Date().toISOString().split('T')[0]; return this._getStore('notes').filter(n => n.createdAt && n.createdAt.startsWith(today2) && n.tags && n.tags.includes('ideas')).length >= 1; }, xp: 20 },
+      { id: 'rotate_2', label: 'Mover 1 tarea a completada', check: () => { const today2 = new Date().toISOString().split('T')[0]; return this._getStore('tasks').filter(t => t.completedAt && t.completedAt.startsWith(today2)).length >= 1; }, xp: 20 },
+      { id: 'rotate_3', label: 'Revisar proyectos activos', check: () => false, xp: 20, manual: true },
+      { id: 'rotate_4', label: 'Agregar 1 evento al calendario', check: () => { const today2 = new Date().toISOString().split('T')[0]; return this._getStore('events').filter(e => e.createdAt && e.createdAt.startsWith(today2)).length >= 1; }, xp: 20 },
+    ];
+    const rotIdx = new Date().getDate() % rotatingMissions.length;
+    const rot = rotatingMissions[rotIdx];
+
+    const missions = [
+      { id: 'login', label: 'Iniciar sesión', xp: 10, auto: true, done: false },
+      { id: 'complete_tasks', label: 'Completar 3 tareas', xp: 25, done: false },
+      { id: 'review_projects', label: 'Revisar proyectos activos', xp: 15, manual: true, done: false },
+      { id: 'add_note', label: 'Agregar 1 nota', xp: 15, done: false },
+      { id: rot.id, label: rot.label, xp: rot.xp, done: false, manual: rot.manual, rotLabel: 'Rotativa' },
+    ];
+
+    data = { date: today, missions };
+    localStorage.setItem('levitar_daily_missions', JSON.stringify(data));
+    return missions;
+  },
+
+  completeMission(missionId) {
+    const today = new Date().toISOString().split('T')[0];
+    const raw = localStorage.getItem('levitar_daily_missions');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.date !== today) return;
+    const mission = data.missions.find(m => m.id === missionId);
+    if (!mission || mission.done) return;
+    mission.done = true;
+    localStorage.setItem('levitar_daily_missions', JSON.stringify(data));
+    this._awardXP(mission.xp);
+    this._notify('missions', 'complete');
+
+    const allDone = data.missions.every(m => m.done);
+    if (allDone) {
+      this._awardXP(50);
+      this._addAchievement('all_missions', 'Completaste todas las misiones del día');
+    }
+
+    const profile = this.getProfile();
+    if (profile.streak >= 7) {
+      const has7 = profile.achievements.some(a => a.id === 'missions_streak_7');
+      if (!has7 && allDone) {
+        this._awardXP(100);
+        this._addAchievement('missions_streak_7', 'Racha de 7 días de misiones');
+      }
+    }
+    if (profile.streak >= 30) {
+      const has30 = profile.achievements.some(a => a.id === 'missions_streak_30');
+      if (!has30 && allDone) {
+        this._awardXP(500);
+        this._addAchievement('missions_streak_30', 'Racha de 30 días de misiones');
+      }
+    }
+  },
+
+  refreshMissionsState() {
+    const missions = this.getDailyMissions();
+    const today = new Date().toISOString().split('T')[0];
+
+    const loginMission = missions.find(m => m.id === 'login');
+    if (loginMission && !loginMission.done) {
+      loginMission.done = true;
+      this._awardXP(loginMission.xp);
+    }
+
+    const completeTaskMission = missions.find(m => m.id === 'complete_tasks');
+    if (completeTaskMission && !completeTaskMission.done) {
+      const doneToday = this._getStore('tasks').filter(t => t.completedAt && t.completedAt.startsWith(today)).length;
+      if (doneToday >= 3) {
+        completeTaskMission.done = true;
+        this._awardXP(completeTaskMission.xp);
+      }
+    }
+
+    const addNoteMission = missions.find(m => m.id === 'add_note');
+    if (addNoteMission && !addNoteMission.done) {
+      const notesToday = this._getStore('notes').filter(n => n.createdAt && n.createdAt.startsWith(today)).length;
+      if (notesToday >= 1) {
+        addNoteMission.done = true;
+        this._awardXP(addNoteMission.xp);
+      }
+    }
+
+    const rotateMission = missions.find(m => m.id && m.id.startsWith('rotate_'));
+    if (rotateMission && !rotateMission.done && !rotateMission.manual) {
+      if (rotateMission.check && rotateMission.check()) {
+        rotateMission.done = true;
+        this._awardXP(rotateMission.xp);
+      }
+    }
+
+    const raw = localStorage.getItem('levitar_daily_missions');
+    if (raw) {
+      const data = JSON.parse(raw);
+      data.missions = missions;
+      localStorage.setItem('levitar_daily_missions', JSON.stringify(data));
+    }
+  },
+
+  getMissionsProgress() {
+    const missions = this.getDailyMissions();
+    const done = missions.filter(m => m.done).length;
+    const total = missions.length;
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+    return { done, total, percent };
+  },
+
   // ─── READY ───
 
   isOnboardingRequired() {

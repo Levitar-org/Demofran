@@ -2,6 +2,7 @@ import { DB, OCCUPATIONS } from '../db.js';
 import { Utils } from '../utils.js';
 import { router } from '../router.js';
 import { CalendarGrid } from '../components/Calendar.js';
+import { DailyMissions } from '../components/DailyMissions.js';
 
 export function DashboardPage() {
   function getGreeting() {
@@ -16,8 +17,6 @@ export function DashboardPage() {
     const projects = DB.getAll('projects');
     const events = DB.getAll('events');
     const history = DB.getAll('history');
-    const visions = DB.getVisions();
-    const goals = DB.getGoals();
     const profile = DB.getProfile();
     const xpInfo = DB.getXPToNextLevel();
 
@@ -28,8 +27,6 @@ export function DashboardPage() {
     return {
       profile, xpInfo, activeProjects, pendingTasks, todayTasks,
       recentHistory: history.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5),
-      activeVision: visions.find(v => v.status === 'active'),
-      activeGoals: goals.filter(g => g.status !== 'achieved'),
       tasks, projects, events
     };
   }
@@ -75,8 +72,8 @@ export function DashboardPage() {
               <div>
                 <div style="font-weight:700;font-size:var(--text-base);letter-spacing:-0.02em">${getGreeting()}, ${Utils.sanitize(p.name)}</div>
                 <div style="font-size:var(--text-xs);color:var(--text-muted);display:flex;gap:12px;margin-top:2px">
-                  ${d.activeVision ? `<span>🎯 ${Utils.truncate(Utils.sanitize(d.activeVision.title), 30)}</span>` : ''}
                   <span>🔥 ${p.streak || 0} días</span>
+                  <span>Nv. ${p.level}</span>
                 </div>
               </div>
             </div>
@@ -120,28 +117,7 @@ export function DashboardPage() {
               }).join('') : empty('Sin tareas para hoy')}
             `, 'tasks-widget')}
 
-            ${widget('Visión y Metas', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>', `
-              ${d.activeVision ? `
-                <div style="margin-bottom:10px">
-                  <div style="font-weight:600;font-size:var(--text-sm)">${Utils.truncate(Utils.sanitize(d.activeVision.title), 45)}</div>
-                </div>
-                ${d.activeGoals.slice(0, 3).map(g => {
-                  const prog = DB.getGoalProgress(g.id);
-                  return `
-                    <div style="margin-bottom:8px">
-                      <div style="display:flex;justify-content:space-between;font-size:var(--text-xs);margin-bottom:2px">
-                        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${Utils.truncate(Utils.sanitize(g.title), 30)}</span>
-                        <span style="color:var(--text-muted);flex-shrink:0">${prog.percent}%</span>
-                      </div>
-                      <div class="progress-bar" style="height:4px">
-                        <div class="progress-fill" style="width:${prog.percent}%;height:4px;background:${g.status === 'achieved' ? 'var(--success)' : 'var(--accent)'};border-radius:2px"></div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-                ${d.activeGoals.length > 3 ? `<div style="font-size:var(--text-xs);color:var(--text-muted)">+${d.activeGoals.length - 3} metas</div>` : ''}
-              ` : empty('Creá tu primera visión en el tutorial')}
-            `, 'vision-widget')}
+            ${widget('🎯 Misiones del día', '', '<div id="dailyMissionsContainer"></div>', 'missions-widget')}
 
             ${widget('Proyectos activos', '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>', `
               ${d.activeProjects.length > 0 ? d.activeProjects.slice(0, 5).map(p => `
@@ -185,6 +161,13 @@ export function DashboardPage() {
         });
         container.innerHTML = cal.render();
         cal.afterRender();
+      }
+
+      const missionsContainer = document.getElementById('dailyMissionsContainer');
+      if (missionsContainer) {
+        const missions = DailyMissions();
+        missionsContainer.innerHTML = missions.render();
+        missions.afterRender();
       }
 
       document.querySelectorAll('[data-nav]').forEach(el => {
