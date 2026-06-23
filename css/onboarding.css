@@ -86,7 +86,7 @@
 
 .onboarding-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
 }
 
@@ -217,7 +217,7 @@
   .onboarding-body { padding: 24px 20px; }
   .onboarding-footer { padding: 0 20px 20px; flex-direction: column; }
   .onboarding-footer .btn { width: 100%; }
-  .onboarding-grid { grid-template-columns: 1fr; }
+  .onboarding-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
   .onboarding-progress { padding: 20px 20px 0; }
   .onboarding-step h2 { font-size: var(--text-xl); }
 }

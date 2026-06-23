@@ -55,9 +55,9 @@ function stepGoal() {
         <polyline points="12 6 12 12 16 14"/>
       </svg>
       <h2>Establecé una Meta</h2>
-      <p>Las metas son los hitos que te acercan a tus objetivos.</p>
+        <p>Las metas son los hitos que te acercan a tus objetivos. Podés skipear este paso si querés.</p>
       <div class="form-group">
-        <label>Título de la meta *</label>
+        <label>Título de la meta</label>
         <input type="text" id="tutGoalTitle" class="form-input" placeholder="Ej: Desarrollar mi marca personal" value="${state.goalTitle || ''}" autofocus>
       </div>
       <div class="form-group">
@@ -169,7 +169,7 @@ function getState() {
 function canProceed() {
   switch (currentStep) {
     case 0: return true;
-    case 1: return state.goalTitle && state.goalTitle.length >= 2;
+    case 1: return true;
     case 2: return state.projName && state.projName.length >= 2;
     case 3: return true;
     case 4: return true;
@@ -183,7 +183,7 @@ function clickNext() {
   if (!canProceed()) return;
   Sound.click();
 
-  if (currentStep === 1) {
+  if (currentStep === 1 && state.goalTitle) {
     DB.create('goals', {
       visionId: null,
       title: state.goalTitle,
@@ -249,7 +249,7 @@ function renderTutorial() {
         ${renderProgress()}
         <div class="onboarding-body" id="tutBody">${renderStep()}</div>
         <div class="onboarding-footer">
-          <div></div>
+          ${currentStep === 1 ? '<button class="btn btn-ghost" id="tutSkipBtn">Skip</button>' : '<div></div>'}
           <button class="btn btn-primary" id="tutNextBtn" ${canProceed() ? '' : 'disabled'}>
             ${currentStep === 0 ? 'Comenzar' : currentStep === 4 ? 'Siguiente →' : currentStep === 5 ? 'Recibir recompensa ✨' : 'Siguiente →'}
           </button>
@@ -262,6 +262,14 @@ function renderTutorial() {
 
   const nextBtn = document.getElementById('tutNextBtn');
   if (nextBtn) nextBtn.addEventListener('click', clickNext);
+
+  const skipBtn = document.getElementById('tutSkipBtn');
+  if (skipBtn) skipBtn.addEventListener('click', () => {
+    state.goalTitle = '';
+    const input = document.getElementById('tutGoalTitle');
+    if (input) input.value = '';
+    clickNext();
+  });
 }
 
 function bindEvents(container) {

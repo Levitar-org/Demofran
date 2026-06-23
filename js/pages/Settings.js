@@ -1,6 +1,7 @@
 import { DB, OCCUPATIONS, TOPICS } from '../db.js';
 import { Utils } from '../utils.js';
 import { showToast } from '../components/Toast.js';
+import { Sound } from '../sound.js';
 
 export function SettingsPage() {
   function saveProfileData() {
@@ -91,7 +92,6 @@ export function SettingsPage() {
 
   return {
     render() {
-      const hasData = DB.count('clients') > 0;
       const profile = DB.getProfile();
       const xpInfo = DB.getXPToNextLevel();
       const tasks = DB.getAll('tasks');
@@ -193,21 +193,41 @@ export function SettingsPage() {
           </div>
 
           <div class="settings-section">
+            <h3>Preferencias</h3>
+            <div class="card">
+              <div class="card-body">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0">
+                  <div>
+                    <div style="font-weight:600;font-size:var(--text-sm)">Tema oscuro</div>
+                    <div style="font-size:var(--text-xs);color:var(--text-muted)">Alternar entre modo claro y oscuro</div>
+                  </div>
+                  <button class="btn btn-sm btn-secondary" id="settingsThemeBtn" style="min-width:100px">Cambiar</button>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border-light)">
+                  <div>
+                    <div style="font-weight:600;font-size:var(--text-sm)">Sonido</div>
+                    <div style="font-size:var(--text-xs);color:var(--text-muted)">Efectos de sonido al interactuar</div>
+                  </div>
+                  <button class="btn btn-sm btn-secondary" id="settingsSoundBtn" style="min-width:100px">${Sound.isEnabled() ? 'Activado' : 'Silenciado'}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
             <h3>Datos de demostración</h3>
             <div class="card">
               <div class="card-body">
                 <p style="margin-bottom:12px">La aplicación incluye datos de demostración precargados para que puedas explorar todas las funcionalidades.</p>
-                ${hasData ? `
+                ${DB.count('clients') > 0 ? `
                   <p style="font-size:var(--text-sm);color:var(--text-secondary);margin-bottom:12px">Actualmente hay <strong>${DB.count('clients')}</strong> ${DB.count('clients') === 1 ? 'cliente' : 'clientes'} en el sistema.</p>
                 ` : `
                   <p style="font-size:var(--text-sm);color:var(--text-muted);margin-bottom:12px">No hay datos de demostración. Podés recargarlos cuando quieras.</p>
                 `}
                 <button class="btn btn-secondary" id="reseedBtn">
-                  ${hasData ? 'Recargar datos demo' : 'Cargar datos demo'}
+                  ${DB.count('clients') > 0 ? 'Recargar datos demo' : 'Cargar datos demo'}
                 </button>
-                ${hasData ? `
-                  <button class="btn btn-danger" id="clearAllBtn" style="margin-left:8px">Eliminar todos los datos</button>
-                ` : ''}
+                <button class="btn btn-danger" id="clearAllBtn" style="margin-left:8px">Eliminar todos los datos</button>
                 <p style="font-size:var(--text-xs);color:var(--text-muted);margin-top:12px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:2px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Recargar demo reinicia todos los datos, incluyendo tu progreso y perfil.</p>
               </div>
             </div>
@@ -257,6 +277,25 @@ export function SettingsPage() {
           window.location.reload();
         }
       });
+
+      document.getElementById('settingsThemeBtn')?.addEventListener('click', () => {
+        const stored = localStorage.getItem('levitar_theme');
+        const current = stored === 'dark' || stored === 'light' ? stored : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const next = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('levitar_theme', next);
+        document.documentElement.classList.toggle('dark', next === 'dark');
+        const btn = document.getElementById('settingsThemeBtn');
+        if (btn) btn.textContent = next === 'dark' ? 'Oscuro' : 'Claro';
+      });
+
+      const soundBtn = document.getElementById('settingsSoundBtn');
+      if (soundBtn) {
+        soundBtn.addEventListener('click', () => {
+          const on = !Sound.isEnabled();
+          Sound.toggle(on);
+          soundBtn.textContent = on ? 'Activado' : 'Silenciado';
+        });
+      }
     }
   };
 }
